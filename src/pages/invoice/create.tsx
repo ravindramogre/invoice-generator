@@ -15,15 +15,12 @@ interface Entry {
   item_price?: number;
   discount?: number;
 }
-interface option {
-  value: number,
-  label: string
-}
+
 export const InvoiceCreate: React.FC = () => {
 
   const { formProps, saveButtonProps, onFinish } = useForm();
   const createInvoiceItems = useCreate();
-  const {data: latestInvoice, isLoading} = useList({
+  const { data: latestInvoice, isLoading } = useList({
     sorters: [
       {
         field: "createdAt",
@@ -31,13 +28,18 @@ export const InvoiceCreate: React.FC = () => {
       },
     ],
   })
-  const [invoiceNo, setInvoiceNo] = useState("INV_00001");
+  //console.log("isLoading",isLoading)
+  // if(isLoading){
+  //   return <div>Loading</div>
+  // }
+  const initInvoice = 'INV_00001';
+  const [invoiceNo, setInvoiceNo] = useState(initInvoice);
   useEffect(() => {
-    const id  = parseInt(`${latestInvoice?.data[0]?.id}` || "0") + 1;
+    const id  = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
     setInvoiceNo(`INV_${id.toString().padStart(5, '0')}`)
+    formProps.form?.setFieldValue('invoice_no',`INV_${id.toString().padStart(5, '0')}`);
   },[latestInvoice])
 
-  console.log(invoiceNo);
   const { data: productData }  = useList({
     resource: "product-types",
     meta: {
@@ -69,7 +71,7 @@ export const InvoiceCreate: React.FC = () => {
     optionLabel: "purity_percentage",
     optionValue: "id"
   });
-  console.log(purityProps);
+  //console.log(purityProps);
   let defaultPurityKey = 0;
   let defaultPurityLabel = 0; 
   const options = purityProps?.options;
@@ -177,11 +179,11 @@ export const InvoiceCreate: React.FC = () => {
   };
 
   const handleOnFinish = async (values: any) => {
-    console.log(entries);
+    const {invoice_no} = values;
     try {
         //console.log(values);
         const response = await onFinish({
-          invoice_no: invoiceNo,
+          invoice_no,
           salesman: `${values.salesman}`,
           taxes: {
             connect: values.taxes
@@ -240,16 +242,32 @@ export const InvoiceCreate: React.FC = () => {
                 invoice: {
                     connect: [invoiceId]
                 }
-            }});
+            },
+            successNotification: false,
+            errorNotification: false
+          });
       });
     } catch (error) {
       console.error("Error creating Invoice Items:", error);
     }
   };
+  
+  if (isLoading){
+    return <div>Loading...</div>
+  }
+
+  //console.log(invoiceNo,'my caller');
+
+  console.log(formProps.form?.getFieldValue(['invoice_no']));//
+  
 
   return (
     <Create saveButtonProps={saveButtonProps}>
-      <Form {...formProps} 
+      <Form {...formProps}
+      onLoad={(e)=>{console.log(e)
+      }}
+      onLoadedData={(e)=>{console.log(e)
+      }}
       onFinish={handleOnFinish} layout="vertical">
         <Form.Item
           label="Invoice Number"
@@ -258,10 +276,10 @@ export const InvoiceCreate: React.FC = () => {
             {
               required: true,
               message: "Please enter Invoice Number",
-            },
+            }
           ]}
         >
-          <Input defaultValue={invoiceNo} disabled={true} />
+          <Input disabled={true} />
         </Form.Item>
         <Form.Item
           label="Salesman"
