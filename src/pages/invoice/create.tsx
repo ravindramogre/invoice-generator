@@ -210,7 +210,7 @@ export const InvoiceCreate: React.FC = () => {
         const units_weight = (item?.unit_weight !== undefined ? item?.unit_weight : 0) * (item?.quantity !== undefined ? item?.quantity : 0);
         let rate = 0;
         types?.data?.forEach((type) => {
-            if(type?.id === item?.product_type?.Value){
+            if(type?.id === item?.product_type?.value){
                 rate = type?.rate;
             }
         })
