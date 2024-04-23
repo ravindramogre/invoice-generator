@@ -17,6 +17,8 @@ export const ProductShow = () => {
             <Text>{record?.name}</Text>
             <Title level={5}>Description</Title>
             <Text>{record?.description}</Text>
+            <Title level={5}>Manufacturer</Title>
+            <Text>{record?.manufacturer}</Text>
         </Show>
     );
 };

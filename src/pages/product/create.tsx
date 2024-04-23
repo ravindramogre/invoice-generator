@@ -6,9 +6,56 @@ import { connect } from "http2";
 
 export const ProductCreate = () => {
   const { formProps, saveButtonProps, onFinish } = useForm();
+  const createProductTypes = useCreate();
+  const { data: typesList, isLoading } = useList({
+    resource: "producttypes"
+  })
+
+  console.log(typesList);
+  const handleOnFinish = async (values: any) => {
+    const {name, description, manufacturer} = values;
+    try {
+        //console.log(values);
+        const response = await onFinish({
+          name,
+          description,
+          manufacturer
+        });
+        handleCreateProductTypes(response?.data?.data?.id);
+        if (typeof response === 'undefined') {
+            throw new Error('Received undefined response from onFinish');
+        }
+        console.log('Form submitted successfully');
+      } catch (error: any) {
+        console.error('Error submitting form:', error.message);
+      }
+  };
+  //console.log(entries);
+  const handleCreateProductTypes = async (productId: number) => {
+    try {
+      typesList?.data?.forEach(async (item) => {
+        await createProductTypes.mutate({
+            resource: "product-types", 
+            values: {
+                product: {
+                    connect: [productId],
+                },
+                type: {
+                    connect: [item?.id]
+                },
+                hsn: (productId.toString() + item?.id?.toString()).padStart(5, '0')
+            },
+            successNotification: false,
+            errorNotification: false
+          });
+      });
+    } catch (error) {
+      console.error("Error creating Product Types:", error);
+    }
+  };
   return (
     <Create saveButtonProps={saveButtonProps}>
-      <Form {...formProps} layout="vertical">
+      <Form {...formProps} onFinish={handleOnFinish} layout="vertical">
         <Form.Item
           label="Product"
           name="name"
@@ -28,6 +75,18 @@ export const ProductCreate = () => {
             {
               required: false,
               message: "Please enter Description",
+            },
+          ]}
+        > 
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="Manufacturer"
+          name="manufacturer"
+          rules={[
+            {
+              required: false,
+              message: "Please enter Manufacturer",
             },
           ]}
         > 

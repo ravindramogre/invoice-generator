@@ -31,6 +31,18 @@ export const ProductEdit = () => {
         >
           <Input />
         </Form.Item>
+        <Form.Item
+          label="Manufacturer"
+          name="manufacturer"
+          rules={[
+            {
+              required: false,
+              message: "Please enter Manufacturer",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
       </Form>
     </Edit>
   );

@@ -18,11 +18,11 @@ export const ProductList = () => {
             title="Product"
             render={(value, record) => <TextField value={value} />}
           />
-          {/* <Table.Column
-            dataIndex="salesman"
-            title="Salesman"
+          <Table.Column
+            dataIndex="manufacturer"
+            title="Manufacturer"
             render={(value, record) => <TextField value={value} />}
-          /> */}
+          />
           <Table.Column
             title="Actions"
             dataIndex="actions"
