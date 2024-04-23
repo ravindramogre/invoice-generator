@@ -43,7 +43,7 @@ export const ProductCreate = () => {
                 type: {
                     connect: [item?.id]
                 },
-                hsn: (productId.toString() + item?.id?.toString()).padStart(5, '0')
+                hsn: (productId.toString() + item?.id?.toString()).padStart(6, '0')
             },
             successNotification: false,
             errorNotification: false

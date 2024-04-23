@@ -40,7 +40,7 @@ export const TypeCreate = () => {
                 type: {
                     connect: [typeId]
                 },
-                hsn: (item?.id?.toString() + typeId.toString()).padStart(5, '0')
+                hsn: (item?.id?.toString() + typeId.toString()).padStart(6, '0')
             },
             successNotification: false,
             errorNotification: false
