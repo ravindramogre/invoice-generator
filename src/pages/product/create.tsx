@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, Button, Table } from "antd";
-import { HttpError, useCreate, useList } from "@refinedev/core";
-import { connect } from "http2";
+import { useCreate, useList } from "@refinedev/core";
 
 export const ProductCreate = () => {
   const { formProps, saveButtonProps, onFinish } = useForm();
   const createProductTypes = useCreate();
   const { data: typesList, isLoading } = useList({
-    resource: "producttypes"
+    resource: "types"
   })
 
   console.log(typesList);
@@ -35,7 +34,7 @@ export const ProductCreate = () => {
     try {
       typesList?.data?.forEach(async (item) => {
         await createProductTypes.mutate({
-            resource: "product-types", 
+            resource: "producttypes", 
             values: {
                 product: {
                     connect: [productId],

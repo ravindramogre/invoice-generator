@@ -32,7 +32,7 @@ export const TypeCreate = () => {
     try {
       productsList?.data?.forEach(async (item) => {
         await createProductTypes.mutate({
-            resource: "product-types", 
+            resource: "producttypes", 
             values: {
                 product: {
                     connect: [item?.id],

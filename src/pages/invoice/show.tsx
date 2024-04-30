@@ -11,9 +11,9 @@ const { Title, Text } = Typography;
 export const InvoiceShow = () => {
     const { queryResult } = useShow({
         meta: {
-            populate: ["taxes", "invoice_items", "invoice_items.purity", "invoice_items.product_type", 
-            "invoice_items.product_type.product",
-            "invoice_items.product_type.type", "customer"]
+            populate: ["taxes", "invoiceitems", "invoiceitems.purity", "invoiceitems.producttype", 
+            "invoiceitems.producttype.product",
+            "invoiceitems.producttype.type", "customer"]
         }
     });
 

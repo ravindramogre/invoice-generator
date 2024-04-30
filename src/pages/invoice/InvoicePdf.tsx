@@ -15,7 +15,7 @@ export const PdfLayout = ({ record }: any) => {
 
   const totalItems: any = [];
   let cnt = 0;
-  const items = record?.invoice_items;
+  const items = record?.invoiceitems;
   let total_price = 0;
   items?.forEach((element: any) => {
     total_price += element?.item_price;
@@ -127,7 +127,7 @@ export const PdfLayout = ({ record }: any) => {
                 >{`Invoice Dt: ${invoiceDate}`}</Text>
                 <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`Pay To: `}</Text>
+                >{`Pay To:  ${record?.salesman}`}</Text>
               </div>
               {/* </Text> */}
             </View>
@@ -318,7 +318,7 @@ export const PdfLayout = ({ record }: any) => {
                 {items?.map((item: any) => (
                   <Text
                     style={{ fontSize: "10", paddingBottom: "2" }}
-                  >{`${item?.product_type?.type?.type} ${item?.product_type?.product?.name}`}</Text>
+                  >{`${item?.producttype?.type?.type} ${item?.producttype?.product?.name}`}</Text>
                 ))}
               </div>
               <div
@@ -331,7 +331,7 @@ export const PdfLayout = ({ record }: any) => {
               >
                 {items?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
-                    {item?.product_type?.hsn}
+                    {item?.producttype?.hsn}
                   </Text>
                 ))}
               </div>

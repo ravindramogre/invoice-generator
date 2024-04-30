@@ -41,13 +41,14 @@ export const InvoiceCreate: React.FC = () => {
   },[latestInvoice])
 
   const { data: productData }  = useList({
-    resource: "product-types",
+    resource: "producttypes",
     meta: {
         populate: ["product", "type"]
     }
   })
+  console.log(productData);
   const { data: types }  = useList({
-    resource: "producttypes",
+    resource: "types",
   })
 
   const productTypes = productData?.data;
@@ -55,6 +56,7 @@ export const InvoiceCreate: React.FC = () => {
         value: `${item.id} ${item?.type?.id}`,
         label: `${item?.type?.type} ${item?.product?.name}`,
   })) 
+  console.log(productTypes);
   let defaultOption = "";
   let defaultKey = 0;
   let defaultValue = 0;
@@ -67,7 +69,7 @@ export const InvoiceCreate: React.FC = () => {
   }
 
   const { selectProps: purityProps } = useSelect({
-    resource: "productpurities",
+    resource: "purities",
     optionLabel: "purity_percentage",
     optionValue: "id"
   });
@@ -82,7 +84,7 @@ export const InvoiceCreate: React.FC = () => {
   //console.log(defaultPurityKey)
 
   const { selectProps: taxesProps } = useSelect({
-    resource: "producttaxes",
+    resource: "taxes",
     optionLabel: "name",
     optionValue: "id",
   });
@@ -223,7 +225,7 @@ export const InvoiceCreate: React.FC = () => {
 
         const item_price = units_price + wcCharges + mcCharges + (item?.stone_charges !== undefined ? item?.stone_charges : 0) - discount;
         await createInvoiceItems.mutate({
-            resource: "productsells", 
+            resource: "invoiceitems", 
             values: {
                 product_type: {
                     connect: [parseInt(item?.product_type?.key)]
@@ -258,7 +260,7 @@ export const InvoiceCreate: React.FC = () => {
 
   //console.log(invoiceNo,'my caller');
 
-  console.log(formProps.form?.getFieldValue(['invoice_no']));//
+  //console.log(formProps.form?.getFieldValue(['invoice_no']));//
   
 
   return (

@@ -29,6 +29,7 @@ import { ProductCreate, ProductEdit, ProductList, ProductShow } from "./pages/pr
 import { PurityCreate, PurityEdit, PurityList, PurityShow } from "./pages/purity";
 import { TaxCreate, TaxEdit, TaxList, TaxShow } from "./pages/tax";
 import { TypeCreate, TypeEdit, TypeList, TypeShow } from "./pages/type";
+import { CustomerCreate, CustomerEdit, CustomerList, CustomerShow } from "./pages/customer";
 
 function App() {
   return (
@@ -40,11 +41,11 @@ function App() {
           Title={()=><h1 style={{color:'#fff',padding:'0.5rem',textAlign:'center',paddingBottom:'0'}}>Invoice Generator</h1>}
           resources={[
             {
-              name: "productinvoices",
-              list: "/productinvoices",
-              create: "/productinvoices/create",
-              edit: "/productinvoices/edit/:id",
-              show: "/productinvoices/show/:id",
+              name: "invoices",
+              list: "/invoices",
+              create: "/invoices/create",
+              edit: "/invoices/edit/:id",
+              show: "/invoices/show/:id",
               meta: {
                 label: "Invoices",
               },
@@ -57,33 +58,43 @@ function App() {
               show: "/products/show/:id",
             },
             {
-              name: "productpurities",
-              list: "/productpurities",
-              create: "/productpurities/create",
-              edit: "/productpurities/edit/:id",
-              show: "/productpurities/show/:id",
+              name: "purities",
+              list: "/purities",
+              create: "/purities/create",
+              edit: "/purities/edit/:id",
+              show: "/purities/show/:id",
               meta: {
                 label: "Purities",
               },
             },
             {
-              name: "producttaxes",
-              list: "/producttaxes",
-              create: "/producttaxes/create",
-              edit: "/producttaxes/edit/:id",
-              show: "/producttaxes/show/:id",
+              name: "taxes",
+              list: "/taxes",
+              create: "/taxes/create",
+              edit: "/taxes/edit/:id",
+              show: "/taxes/show/:id",
               meta: {
                 label: "Taxes",
               },
             },
             {
-              name: "producttypes",
-              list: "/producttypes",
-              create: "/producttypes/create",
-              edit: "/producttypes/edit/:id",
-              show: "/producttypes/show/:id",
+              name: "types",
+              list: "/types",
+              create: "/types/create",
+              edit: "/types/edit/:id",
+              show: "/types/show/:id",
               meta: {
                 label: "Material",
+              },
+            },
+            {
+              name: "customers",
+              list: "/customers",
+              create: "/customers/create",
+              edit: "/customers/edit/:id",
+              show: "/customers/show/:id",
+              meta: {
+                label: "Customers",
               },
             },
           ]}
@@ -103,10 +114,15 @@ function App() {
             >
               <Route
                 index
-                element={<NavigateToResource resource="productinvoices" />}
+                element={<NavigateToResource resource="invoices" />}
               />
-
-              <Route path="productinvoices">
+              <Route path="customers">
+                <Route index element={<CustomerList />} />
+                <Route path="create" element={<CustomerCreate />} />
+                <Route path="edit/:id" element={<CustomerEdit />} />
+                <Route path="show/:id" element={<CustomerShow />} />
+              </Route>
+              <Route path="invoices">
                 <Route index element={<InvoiceList />} />
                 <Route path="create" element={<InvoiceCreate />} />
                 <Route path="edit/:id" element={<InvoiceEdit />} />
@@ -118,19 +134,19 @@ function App() {
                 <Route path="edit/:id" element={<ProductEdit />} />
                 <Route path="show/:id" element={<ProductShow />} />
               </Route>
-              <Route path="productpurities">
+              <Route path="purities">
                 <Route index element={<PurityList />} />
                 <Route path="create" element={<PurityCreate />} />
                 <Route path="edit/:id" element={<PurityEdit />} />
                 <Route path="show/:id" element={<PurityShow />} />
               </Route>
-              <Route path="producttaxes">
+              <Route path="taxes">
                 <Route index element={<TaxList />} />
                 <Route path="create" element={<TaxCreate />} />
                 <Route path="edit/:id" element={<TaxEdit />} />
                 <Route path="show/:id" element={<TaxShow />} />
               </Route>
-              <Route path="producttypes">
+              <Route path="types">
                 <Route index element={<TypeList />} />
                 <Route path="create" element={<TypeCreate />} />
                 <Route path="edit/:id" element={<TypeEdit />} />

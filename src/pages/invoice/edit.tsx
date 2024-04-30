@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 
-import { Button, Form, Input, Select, Table, notification } from "antd";
+import { Button, Form, Input, Select, Table } from "antd";
 import { useCreate, useDelete, useList, useUpdate } from "@refinedev/core";
-
-// import MDEditor from "@uiw/react-md-editor";
 
 interface Entry {
     id?: any,
@@ -26,13 +24,14 @@ interface Entry {
 export const InvoiceEdit = () => {
     const { formProps, saveButtonProps, queryResult } = useForm({
         meta: {
-            populate: ["taxes", "invoice_items", "invoice_items.purity", "invoice_items.product_type", 
-            "invoice_items.product_type.product",
-            "invoice_items.product_type.type", "customer"]
+            populate: ["taxes", "invoiceitems", "invoiceitems.purity", "invoiceitems.producttype", 
+            "invoiceitems.producttype.product",
+            "invoiceitems.producttype.type", "customer"]
         }
     });
+    //console.log(queryResult);
     const postData = queryResult?.data?.data;
-    const itemsData = postData?.invoice_items;
+    const itemsData = postData?.invoiceitems;
     const updateInvoiceItems = useUpdate();
     const updateInvoice = useUpdate();
     const deleteInvoiceItems = useDelete();
@@ -41,7 +40,7 @@ export const InvoiceEdit = () => {
     const createInvoiceItem = useCreate();
 
     const { data: types }  = useList({
-        resource: "producttypes",
+        resource: "types",
     })
     itemsData?.forEach((item: any) => initialEntries.add(parseInt(item?.id)));
     const [entries, setEntries] = useState<Entry[]>([]);
@@ -51,9 +50,9 @@ export const InvoiceEdit = () => {
             entry.push({
                 id: item?.id,
                 product_type: {
-                    key: item?.product_type?.id,
-                    value: item?.product_type?.type?.id, 
-                    label: `${item?.product_type.type?.type} ${item?.product_type?.product?.name}`
+                    key: item?.producttype?.id,
+                    value: item?.producttype?.type?.id, 
+                    label: `${item?.producttype.type?.type} ${item?.producttype?.product?.name}`
                 },
                 unit_weight: item?.unit_weight,
                 making_charges: item?.making_charges,
@@ -72,9 +71,7 @@ export const InvoiceEdit = () => {
         setEntries(entry);
     },[itemsData])
 
-    console.log(initialEntries)
     const taxes = postData?.taxes?.map((tax: any) => (tax?.id));
-    //console.log(postData);
     const initialValues = {
         invoice_no: postData?.invoice_no,
         salesman: postData?.salesman,
@@ -84,7 +81,7 @@ export const InvoiceEdit = () => {
     }
 
   const { selectProps: purityProps } = useSelect({
-    resource: "productpurities",
+    resource: "purities",
     optionLabel: "purity_percentage",
     optionValue: "id",
   });
@@ -96,7 +93,7 @@ export const InvoiceEdit = () => {
     defaultPurityLabel = parseFloat(`${purityProps?.options[0]?.label}`)
   }
   const { selectProps: taxesProps } = useSelect({
-    resource: "producttaxes",
+    resource: "taxes",
     optionLabel: "name",
     optionValue: "id"
   });
@@ -106,7 +103,7 @@ export const InvoiceEdit = () => {
     optionValue: "id",
   });
   const { data: productData }  = useList({
-    resource: "product-types",
+    resource: "producttypes",
     meta: {
         populate: ["product", "type"]
     }
@@ -163,9 +160,7 @@ export const InvoiceEdit = () => {
             const keyString = value.substr(0, value.indexOf(" "));
             const valueString = value.substr(value.indexOf(" ") + 1);
             const key = typeof keyString === "string" ? parseInt(keyString) : keyString;
-            const Value = typeof valueString === "string" ? parseInt(valueString) : valueString;
-            console.log(updatedEntries[index]);
-            
+            const Value = typeof valueString === "string" ? parseInt(valueString) : valueString; 
             updatedEntries[index] = {
                 ...updatedEntries[index],
                 [field]: {
@@ -173,11 +168,8 @@ export const InvoiceEdit = () => {
                     value: Value,
                     label: `${key}`
                 }
-            };
-            console.log(updatedEntries);
-            
+            }; 
         } else if (field === "purity" && typeof value === "string"){
-
             const updatedValue = typeof value === "string" ? parseFloat(value) : value;
             updatedEntries[index] = {
                 ...updatedEntries[index],
@@ -195,16 +187,14 @@ export const InvoiceEdit = () => {
             [field]: updatedValue,
             };
         }
-        console.log(updatedEntries)
         setEntries(updatedEntries);
       };
 
       const handleOnFinish = async (values: any) => {
         try {
-            //console.log(values);
             const id: any = postData?.id == undefined ? 0 : postData?.id;
             await updateInvoice.mutate({
-                resource: "productinvoices",
+                resource: "invoices",
                 id,
                 values: {
                     invoice_no: `${values.invoice_no}`,
@@ -227,7 +217,6 @@ export const InvoiceEdit = () => {
       const handleUpdateInvoiceItems = async (invoiceId: number) => {
         try {
           entries.forEach(async (item) => {
-            //console.log(invoiceId);
             const id = item?.id;
             const units_weight = (item?.unit_weight !== undefined ? item?.unit_weight : 0) * (item?.quantity !== undefined ? item?.quantity : 0);
             let rate = 0;
@@ -248,7 +237,7 @@ export const InvoiceEdit = () => {
             }
             try {
             await updateInvoiceItems.mutate({
-                resource: "productsells", 
+                resource: "invoiceitems", 
                 id,
                 values: {
                     product_type: {
@@ -275,7 +264,7 @@ export const InvoiceEdit = () => {
                 {
                     onError: async (error)=>{
                       await createInvoiceItem.mutate({
-                        resource: "productsells",
+                        resource: "invoiceitems",
                         values: {
                           product_type: {
                             connect: [item?.product_type?.key]
@@ -309,7 +298,7 @@ export const InvoiceEdit = () => {
           if (initialEntries.size !== 0){
               initialEntries?.forEach(async (id: any) => {
                 await deleteInvoiceItems.mutate({
-                  resource: "productsells",
+                  resource: "invoiceitems",
                   id,
                   errorNotification: false,
                   successNotification: false
@@ -321,7 +310,6 @@ export const InvoiceEdit = () => {
         }
       };
     // console.log(entries);
-  console.log(entries);
     return (
         <Edit saveButtonProps={saveButtonProps}>
             <Form {...formProps} onFinish={handleOnFinish} layout="vertical" initialValues={initialValues}>
@@ -461,7 +449,7 @@ export const InvoiceEdit = () => {
                 <Input
                   value={text || "0"}
                   onChange={(e) => {
-                    console.log(e.target.value);
+                    //console.log(e.target.value);
                     handleFieldChange(
                       e.target.value,
                       "worker_compensation",
