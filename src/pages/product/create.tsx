@@ -42,7 +42,8 @@ export const ProductCreate = () => {
                 type: {
                     connect: [item?.id]
                 },
-                hsn: (productId.toString() + item?.id?.toString()).padStart(6, '0')
+                //hsn: (productId.toString() + item?.id?.toString()).padStart(6, '0')
+                hsn: '7113'
             },
             successNotification: false,
             errorNotification: false

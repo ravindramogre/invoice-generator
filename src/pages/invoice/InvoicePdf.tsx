@@ -7,9 +7,11 @@ import {
   Text,
   PDFViewer,
 } from "@react-pdf/renderer";
+import QRImage from "/qrambika.png";
+import AaiMataImage from "/jagdambamata.jpg";
+import BIS from "/bis.jpeg";
 
 export const PdfLayout = ({ record }: any) => {
-  
   const trimIndex = record?.createdAt?.indexOf("T");
   const invoiceDate = record?.createdAt?.substring(0, trimIndex);
 
@@ -25,7 +27,7 @@ export const PdfLayout = ({ record }: any) => {
   //TODO grand total calculation
   let grand_total = total_price;
   record?.taxes?.forEach((tax: any) => {
-    grand_total += (total_price * tax?.percentage/ 100);
+    grand_total += (total_price * tax?.percentage) / 100;
   });
   console.log(grand_total);
   const GT_Before = grand_total;
@@ -39,28 +41,66 @@ export const PdfLayout = ({ record }: any) => {
         <Page style={styles.page} size="A4" orientation="landscape">
           <View>
             <View style={styles.invoiceTextNumberContainer}>
-              <Text>{`GSTIN: GUH123561H123671`}</Text>
+              <Text>{`GSTIN: 29AHOPK1389F1ZX`}</Text>
               <Text>{`Invoice Id:${record?.id}`}</Text>
             </View>
           </View>
           <View style={styles.dividerLG} />
 
-          <View style={{ marginBottom: "2", paddingBottom: "2" }}>
-            <View style={{ textAlign: "center" }}>
-              <Text style={{ fontSize: "20" }}>
-                PRAKASH BANKERS AND JWELLERS
-              </Text>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "30px",
+              marginLeft: "60px",
+            }}
+          >
+            <View>
+              <Image style={{ height: "50", width: "50" }} src={AaiMataImage} />
             </View>
-            <View style={{ textAlign: "center" }}>
-              <Text style={{ fontSize: "10" }}>
-                NO.29/1, HEHRU ROAD, KULLAPPA CIRCLE, KAMAMANAHALLI BANGALORE
-              </Text>
+            <View>
+              <View
+                style={{
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: "25" }}>
+                  AMBIKA JEWELLERS AND BANKERS
+                </Text>
+              </View>
+              <View
+                style={{
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: "12" }}>
+                  NO.27, KULLAPPA CIRCLE, NEHRU ROAD, KAMAMANAHALLI, BANGALORE
+                </Text>
+              </View>
+              <View
+                style={{
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: "12" }}>560084, Ph. 944-9987873</Text>
+              </View>
             </View>
-            <View style={{ textAlign: "center" }}>
-              <Text style={{ fontSize: "10" }}>560084, Ph. XXX-XXXX79XX</Text>
+            <View>
+              <Image style={{ height: "50", width: "50" }} src={QRImage} />
             </View>
-          </View>
-
+            <View>
+              <Image style={{ height: "60", width: "70" }} src={BIS} />
+            </View>
+          </div>
           <View style={styles.table}>
             <View
               style={[
@@ -125,9 +165,9 @@ export const PdfLayout = ({ record }: any) => {
                 <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
                 >{`Invoice Dt: ${invoiceDate}`}</Text>
-                <Text
+                {/* <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`Pay To:  ${record?.salesman}`}</Text>
+                >{`Pay To:  ${record?.salesman}`}</Text> */}
               </div>
               {/* </Text> */}
             </View>
@@ -515,21 +555,24 @@ export const PdfLayout = ({ record }: any) => {
                 >
                   <Text style={{ fontSize: "11" }}>Payment Method : G Pay</Text>
                 </div>
-                <div style={{ justifyContent: "space-between", width: "70%", padding: "2", textAlign: "right" }}>
-                  <Text
-                    style={styles.footerItems}
-                  >
+                <div
+                  style={{
+                    justifyContent: "space-between",
+                    width: "70%",
+                    padding: "2",
+                    textAlign: "right",
+                  }}
+                >
+                  <Text style={styles.footerItems}>
                     {`Taxable Amount:    ${total_price.toFixed(2)}`}
                   </Text>
-                  {
-                    record?.taxes?.map((tax: any) => (
-                      <Text
-                      style={styles.footerItems}
-                      >
-                        {`${tax?.name} @ ${tax?.percentage}       ${(Math.round(total_price * tax?.percentage) / 100)}`}
-                      </Text>
-                    ))
-                  }
+                  {record?.taxes?.map((tax: any) => (
+                    <Text style={styles.footerItems}>
+                      {`${tax?.name} @ ${tax?.percentage}       ${
+                        Math.round(total_price * tax?.percentage) / 100
+                      }`}
+                    </Text>
+                  ))}
                   {/* <Text
                     style={styles.footerItems}
                   >
@@ -538,14 +581,10 @@ export const PdfLayout = ({ record }: any) => {
                   <Text style={styles.footerItems}>
                     {`${record?.taxes[1]?.name} @ ${record?.taxes[1]?.percentage}:      23`}
                   </Text> */}
-                  <Text
-                    style={styles.footerItems}
-                  >
+                  <Text style={styles.footerItems}>
                     {`Round Off:   ${round_off}`}
                   </Text>
-                  <Text
-                    style={styles.footerItems}
-                  >
+                  <Text style={styles.footerItems}>
                     {`Grand Total   ${grand_total}`}
                   </Text>
                 </div>
