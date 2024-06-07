@@ -22,6 +22,11 @@ export const TypeList = () => {
             title="Rate"
             render={(value, record) => <TextField value={value} />}
           />
+           <Table.Column
+            dataIndex="hsn"
+            title="HSN"
+            render={(value, record) => <TextField value={value} />}
+          />
           <Table.Column
             title="Actions"
             dataIndex="actions"

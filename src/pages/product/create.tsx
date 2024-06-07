@@ -9,8 +9,6 @@ export const ProductCreate = () => {
   const { data: typesList, isLoading } = useList({
     resource: "types"
   })
-
-  console.log(typesList);
   const handleOnFinish = async (values: any) => {
     const {name, description, manufacturer} = values;
     try {
@@ -42,8 +40,6 @@ export const ProductCreate = () => {
                 type: {
                     connect: [item?.id]
                 },
-                //hsn: (productId.toString() + item?.id?.toString()).padStart(6, '0')
-                hsn: '7113'
             },
             successNotification: false,
             errorNotification: false

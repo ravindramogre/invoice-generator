@@ -11,12 +11,13 @@ export const TypeCreate = () => {
   })
 
   const handleOnFinish = async (values: any) => {
-    const {type, rate} = values;
+    const {type, rate, hsn} = values;
     try {
         //console.log(values);
         const response = await onFinish({
           type,
-          rate
+          rate,
+          hsn
         });
         handleCreateProductTypes(response?.data?.data?.id);
         if (typeof response === 'undefined') {
@@ -40,8 +41,6 @@ export const TypeCreate = () => {
                 type: {
                     connect: [typeId]
                 },
-                //hsn: (item?.id?.toString() + typeId.toString()).padStart(6, '0')
-                hsn: '7113'
             },
             successNotification: false,
             errorNotification: false
@@ -73,6 +72,18 @@ export const TypeCreate = () => {
             {
               required: true,
               message: "Please enter rate",
+            },
+          ]}
+        >
+          <Input disabled={false} />
+        </Form.Item>
+        <Form.Item
+          label="HSN"
+          name="hsn"
+          rules={[
+            {
+              required: true,
+              message: "Please enter hsn",
             },
           ]}
         >

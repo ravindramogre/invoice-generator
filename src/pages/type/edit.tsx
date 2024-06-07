@@ -31,6 +31,18 @@ export const TypeEdit = () => {
         >
           <Input />
         </Form.Item>
+        <Form.Item
+          label="HSN"
+          name="hsn"
+          rules={[
+            {
+              required: true,
+              message: "Please enter hsn",
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
       </Form>
     </Edit>
   );
