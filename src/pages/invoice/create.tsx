@@ -4,7 +4,6 @@ import { Form, Input, Select, Button, Table, Modal, Image } from "antd";
 import { useCreate, useList } from "@refinedev/core";
 import { PdfLayout } from "./InvoicePdf";
 import { PdfLayoutEstimate } from "./InvoidePdfEstimate";
-var QrReader = require("@types/react-qr-reader")
 import QrIcon from "/qrIcon.png";
 
 interface Entry {
@@ -575,7 +574,7 @@ export const InvoiceCreate: React.FC = () => {
         <PdfLayoutEstimate invoiceitems={entries} invoice={invoice} />
       </Modal>
 
-      <Image
+      {/* <Image
         onClick={() => setShowQR(true)}
         preview={false}
         src={QrIcon}
@@ -601,7 +600,7 @@ export const InvoiceCreate: React.FC = () => {
               style={{ width: "100%", height: "100%" }}
             />
         </div>
-      </Modal>
+      </Modal> */}
     </Create>
   );
 };
