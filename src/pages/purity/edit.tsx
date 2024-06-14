@@ -13,11 +13,10 @@ export const PurityEdit = () => {
           rules={[
             {
               required: true,
-              message: "Please enter product name",
             },
           ]}
         >
-          <Input disabled={true} />
+          <Input disabled={false} />
         </Form.Item>
       </Form>
     </Edit>

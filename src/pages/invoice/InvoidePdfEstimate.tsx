@@ -100,7 +100,8 @@ export const PdfLayoutEstimate = ({ invoiceitems, invoice }: any) => {
     words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
   }
   converted = words.join(' ');
-  
+  converted = "Rupees " + words.join(' ') + " Only.";
+
   return (
     <PDFViewer style={styles.viewer}>
       <Document>
@@ -620,7 +621,7 @@ export const PdfLayoutEstimate = ({ invoiceitems, invoice }: any) => {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: "11" }}>Payment Method : G Pay</Text>
+                  <Text style={{ fontSize: "11" }}>Payment Method : {invoice?.payment_mode}</Text>
                 </div>
                 <div
                   style={{

@@ -17,7 +17,7 @@ export const TaxEdit = () => {
             },
           ]}
         >
-          <Input disabled={true} />
+          <Input disabled={false} />
         </Form.Item>
         <Form.Item
           label="Percentage"

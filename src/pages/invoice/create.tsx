@@ -23,6 +23,7 @@ export const InvoiceCreate: React.FC = () => {
   const { mutate: createInvoice } = useCreate();
   const [open, setOpen] = useState(false);
   const [invoice, setInvoice] = useState(null);
+  const [paymentMode, setPaymentMode] = useState("");
   const [form] = Form.useForm();
   const [showQR, setShowQR] = useState(false);
   const { data: latestInvoice, isLoading } = useList({
@@ -39,6 +40,7 @@ export const InvoiceCreate: React.FC = () => {
     const id = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
     setInvoiceNo(`INV_${id.toString().padStart(5, "0")}`);
     form?.setFieldValue("invoice_no", `INV_${id.toString().padStart(5, "0")}`);
+    form?.setFieldValue("taxes", [1, 2]);
   }, [latestInvoice]);
 
   const { data: productData } = useList({
@@ -187,12 +189,14 @@ export const InvoiceCreate: React.FC = () => {
         },
       };
     } else {
-      const updatedValue =
-        typeof value === "string" ? parseFloat(value) : value;
-      updatedEntries[index] = {
-        ...updatedEntries[index],
-        [field]: updatedValue,
-      };
+      const regex = /^[+-]?\d*\.?\d*$/;
+      if (typeof value === "string" && regex.test(value)){
+        const updatedValue = value.charAt(0) === '0' ? value.substring(1) : value;
+        updatedEntries[index] = {
+          ...updatedEntries[index],
+          [field]: updatedValue,
+        };
+      }
     }
     //console.log(updatedEntries)
     setEntries(updatedEntries);
@@ -207,13 +211,14 @@ export const InvoiceCreate: React.FC = () => {
           resource: "invoices",
           values: {
             invoice_no: invoice_no,
-            salesman: `${values.salesman}`,
+            //salesman: `${values.salesman}`,
             taxes: {
               connect: values.taxes,
             },
             customer: {
               connect: [values.customer],
             },
+            payment_mode: paymentMode
           },
         },
         {
@@ -308,6 +313,8 @@ export const InvoiceCreate: React.FC = () => {
 
   //console.log(formProps.form?.getFieldValue(['invoice_no']));//
 
+  const filterOption = (input: string, option?: { label: string; value: string }) =>
+    (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
   const handleError = () => {
   }
 
@@ -363,9 +370,11 @@ export const InvoiceCreate: React.FC = () => {
               key="product_type"
               render={(text, record, index) => (
                 <Select
+                  showSearch
                   style={{ width: "180px" }}
                   options={productOptions}
                   value={text?.label}
+                  filterOption={filterOption}
                   onChange={(value, option: any) => {
                     console.log(option);
                     handleFieldChange(
@@ -407,7 +416,7 @@ export const InvoiceCreate: React.FC = () => {
               key="quantity"
               render={(text, record: Entry, index) => (
                 <Input
-                  value={text || "0"}
+                  value={text || '0'}
                   onChange={(e) => {
                     handleFieldChange(e.target.value, "quantity", index);
                   }}
@@ -558,6 +567,22 @@ export const InvoiceCreate: React.FC = () => {
           ]}
         >
           <Select {...customerProps} style={{ width: "100%" }} />
+        </Form.Item>
+        <Form.Item
+          label="Payment Mode"
+          name="payment_mode"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Select style={{ width: "100%" }} onChange={(value) => setPaymentMode(value)}>
+            <Select.Option value={"UPI"}>UPI</Select.Option>
+            <Select.Option value={"CASH"}>Cash</Select.Option>
+            <Select.Option value={"CREDITCARD"}>Credit Card</Select.Option>
+            <Select.Option value={"DEBITCARD"}>Debit Card</Select.Option>
+          </Select>
         </Form.Item>
         <Form.Item style={{ display: "flex", justifyContent: "flex-end" }}>
           <Button type="primary" htmlType="submit">

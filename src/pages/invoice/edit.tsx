@@ -35,6 +35,7 @@ export const InvoiceEdit = () => {
     const updateInvoiceItems = useUpdate();
     const updateInvoice = useUpdate();
     const deleteInvoiceItems = useDelete();
+    const [paymentMode, setPaymentMode] = useState("");
 
     const initialEntries = new Set();
     const createInvoiceItem = useCreate();
@@ -68,6 +69,7 @@ export const InvoiceEdit = () => {
                 discount: item?.discount
             })
         })
+        setPaymentMode(postData?.payment_mode);
         setEntries(entry);
     },[itemsData])
 
@@ -181,11 +183,14 @@ export const InvoiceEdit = () => {
             };
         }
         else{
-            const updatedValue = typeof value === "string" ? parseFloat(value) : value;
+          const regex = /^[+-]?\d*\.?\d*$/;
+          if (typeof value === "string" && regex.test(value)){
+            const updatedValue = value.charAt(0) === '0' ? value.substring(1) : value;
             updatedEntries[index] = {
-            ...updatedEntries[index],
-            [field]: updatedValue,
+              ...updatedEntries[index],
+              [field]: updatedValue,
             };
+          }
         }
         setEntries(updatedEntries);
       };
@@ -198,13 +203,14 @@ export const InvoiceEdit = () => {
                 id,
                 values: {
                     invoice_no: `${values.invoice_no}`,
-                    salesman: `${values.salesman}`,
+                    //salesman: `${values.salesman}`,
                     taxes: {
                         connect: values?.taxes
                     },
                     customer: {
                         connect: [values?.customer?.value]
-                    }
+                    },
+                    payment_mode: paymentMode
                 }
             });
             handleUpdateInvoiceItems(id);
@@ -310,6 +316,10 @@ export const InvoiceEdit = () => {
         }
       };
     // console.log(entries);
+
+    const filterOption = (input: string, option?: { label: string; value: string }) =>
+      (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
+
     return (
         <Edit saveButtonProps={saveButtonProps}>
             <Form {...formProps} onFinish={handleOnFinish} layout="vertical" initialValues={initialValues}>
@@ -325,7 +335,7 @@ export const InvoiceEdit = () => {
         >
           <Input disabled={true} />
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           label="Salesman"
           name="salesman"
           rules={[
@@ -336,7 +346,7 @@ export const InvoiceEdit = () => {
           ]}
         >
           <Input/>
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item>
           <Table
             dataSource={entries}
@@ -350,8 +360,10 @@ export const InvoiceEdit = () => {
               key="product_type"
               render={(text, record, index) => (
                 <Select
+                  showSearch
                   style={{ width: "100%"}}
                   defaultValue={`${text?.label}`}
+                  filterOption={filterOption}
                   options={productOptions}
                   onChange={(value) => {
                     handleFieldChange(
@@ -567,6 +579,22 @@ export const InvoiceEdit = () => {
           ]}
         >
           <Select {...customerProps} style={{ width: "100%" }} />
+        </Form.Item>
+        <Form.Item
+          label="Payment Mode"
+          name="payment_mode"
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Select style={{ width: "100%" }} defaultValue={paymentMode} onChange={(value) => setPaymentMode(value)}>
+            <Select.Option value={"UPI"}>UPI</Select.Option>
+            <Select.Option value={"CASH"}>Cash</Select.Option>
+            <Select.Option value={"CREDITCARD"}>Credit Card</Select.Option>
+            <Select.Option value={"DEBITCARD"}>Debit Card</Select.Option>
+          </Select>
         </Form.Item>
             </Form>
         </Edit>
