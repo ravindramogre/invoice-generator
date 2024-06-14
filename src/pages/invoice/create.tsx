@@ -4,7 +4,7 @@ import { Form, Input, Select, Button, Table, Modal, Image } from "antd";
 import { useCreate, useList } from "@refinedev/core";
 import { PdfLayout } from "./InvoicePdf";
 import { PdfLayoutEstimate } from "./InvoidePdfEstimate";
-import QrReader from "react-qr-scanner";
+var QrReader = require("@types/react-qr-reader")
 import QrIcon from "/qrIcon.png";
 
 interface Entry {
