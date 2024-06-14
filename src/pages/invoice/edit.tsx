@@ -24,9 +24,9 @@ interface Entry {
 export const InvoiceEdit = () => {
     const { formProps, saveButtonProps, queryResult } = useForm({
         meta: {
-            populate: ["taxes", "invoiceitems", "invoiceitems.purity", "invoiceitems.producttype", 
-            "invoiceitems.producttype.product",
-            "invoiceitems.producttype.type", "customer"]
+            populate: ["taxes", "invoiceitems", "invoiceitems.purity", "invoiceitems.product_type", 
+            "invoiceitems.product_type.product",
+            "invoiceitems.product_type.type", "customer"]
         }
     });
     //console.log(queryResult);
@@ -50,9 +50,9 @@ export const InvoiceEdit = () => {
             entry.push({
                 id: item?.id,
                 product_type: {
-                    key: item?.producttype?.id,
-                    value: item?.producttype?.type?.id, 
-                    label: `${item?.producttype.type?.type} ${item?.producttype?.product?.name}`
+                    key: item?.product_type?.id,
+                    value: item?.product_type?.type?.id, 
+                    label: `${item?.product_type.type?.type} ${item?.product_type?.product?.name}`
                 },
                 unit_weight: item?.unit_weight,
                 making_charges: item?.making_charges,

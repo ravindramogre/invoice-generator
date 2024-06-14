@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, Button, Table } from "antd";
-import { HttpError, useCreate, useList, useMany, useOne } from "@refinedev/core";
-import { connect } from "http2";
+import { Form, Input, Select, Button, Table, Modal, Image } from "antd";
+import { useCreate, useList } from "@refinedev/core";
+import { PdfLayout } from "./InvoicePdf";
+import { PdfLayoutEstimate } from "./InvoidePdfEstimate";
+import QrReader from "react-qr-scanner";
+import QrIcon from "/qrIcon.png";
 
 interface Entry {
   product_type?: any;
@@ -17,9 +20,12 @@ interface Entry {
 }
 
 export const InvoiceCreate: React.FC = () => {
-
-  const { formProps, saveButtonProps, onFinish } = useForm();
   const createInvoiceItems = useCreate();
+  const { mutate: createInvoice } = useCreate();
+  const [open, setOpen] = useState(false);
+  const [invoice, setInvoice] = useState(null);
+  const [form] = Form.useForm();
+  const [showQR, setShowQR] = useState(false);
   const { data: latestInvoice, isLoading } = useList({
     sorters: [
       {
@@ -27,59 +33,53 @@ export const InvoiceCreate: React.FC = () => {
         order: "desc",
       },
     ],
-  })
-  //console.log("isLoading",isLoading)
-  // if(isLoading){
-  //   return <div>Loading</div>
-  // }
-  const initInvoice = 'INV_00001';
+  });
+  const initInvoice = "INV_00001";
   const [invoiceNo, setInvoiceNo] = useState(initInvoice);
   useEffect(() => {
-    const id  = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
-    setInvoiceNo(`INV_${id.toString().padStart(5, '0')}`)
-    formProps.form?.setFieldValue('invoice_no',`INV_${id.toString().padStart(5, '0')}`);
-  },[latestInvoice])
+    const id = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
+    setInvoiceNo(`INV_${id.toString().padStart(5, "0")}`);
+    form?.setFieldValue("invoice_no", `INV_${id.toString().padStart(5, "0")}`);
+  }, [latestInvoice]);
 
-  const { data: productData }  = useList({
+  const { data: productData } = useList({
     resource: "producttypes",
     meta: {
-        populate: ["product", "type"]
-    }
-  })
-  console.log(productData);
-  const { data: types }  = useList({
+      populate: ["product", "type"],
+    },
+  });
+  const { data: types } = useList({
     resource: "types",
-  })
+  });
 
   const productTypes = productData?.data;
   const productOptions = productTypes?.map((item: any) => ({
-        value: `${item.id} ${item?.type?.id}`,
-        label: `${item?.type?.type} ${item?.product?.name}`,
-  })) 
-  console.log(productTypes);
+    value: `${item.id} ${item?.type?.id}`,
+    label: `${item?.type?.type} ${item?.product?.name}`,
+  }));
   let defaultOption = "";
   let defaultKey = 0;
   let defaultValue = 0;
   let defaultLabel = "";
-  if (productTypes){
-    defaultOption = `${productTypes[0]?.id} ${productTypes[0]?.type?.id}`
-    defaultKey = parseFloat(`${productTypes[0]?.id}`)
-    defaultValue = parseFloat(`${productTypes[0]?.type?.id}`)
-    defaultLabel = `${productTypes[0]?.type?.type} ${productTypes[0]?.product?.name}`
+  if (productTypes) {
+    defaultOption = `${productTypes[0]?.id} ${productTypes[0]?.type?.id}`;
+    defaultKey = parseInt(`${productTypes[0]?.id}`);
+    defaultValue = parseInt(`${productTypes[0]?.type?.id}`);
+    defaultLabel = `${productTypes[0]?.type?.type} ${productTypes[0]?.product?.name}`;
   }
 
   const { selectProps: purityProps } = useSelect({
     resource: "purities",
     optionLabel: "purity_percentage",
-    optionValue: "id"
+    optionValue: "id",
   });
   //console.log(purityProps);
   let defaultPurityKey = 0;
-  let defaultPurityLabel = 0; 
+  let defaultPurityLabel = 0;
   const options = purityProps?.options;
-  if(purityProps?.options){
-    defaultPurityKey = parseFloat(`${purityProps?.options[0]?.value}`)
-    defaultPurityLabel = parseFloat(`${purityProps?.options[0]?.label}`)
+  if (purityProps?.options) {
+    defaultPurityKey = parseFloat(`${purityProps?.options[0]?.value}`);
+    defaultPurityLabel = parseFloat(`${purityProps?.options[0]?.label}`);
   }
   //console.log(defaultPurityKey)
 
@@ -96,40 +96,54 @@ export const InvoiceCreate: React.FC = () => {
   //console.log(types?.data);
 
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [entry, setEntry] = useState({})
+  const [entry, setEntry] = useState({});
   useEffect(() => {
-      setEntry(
-        {
-          product_type: { key: defaultKey, value: defaultValue, label: defaultLabel },
-          unit_weight: 0,
-          making_charges: 0,
-          worker_compensation: 0,
-          stone_charges: 0,
-          quantity: 0,
-          item_price: 0,
-          purity: { key: defaultPurityKey, value: defaultPurityKey, label: defaultPurityLabel },
-          discount: 0,
-        },
-      )
-  }, [productData, options])
+    setEntry({
+      product_type: {
+        key: defaultKey,
+        value: defaultValue,
+        label: defaultLabel,
+      },
+      unit_weight: 0,
+      making_charges: 0,
+      worker_compensation: 0,
+      stone_charges: 0,
+      quantity: 0,
+      item_price: 0,
+      purity: {
+        key: defaultPurityKey,
+        value: defaultPurityKey,
+        label: defaultPurityLabel,
+      },
+      discount: 0,
+    });
+  }, [productData, options]);
   //console.log(entry);
 
   useEffect(() => {
-    setEntries([entry])
-  }, [entry])
+    setEntries([entry]);
+  }, [entry]);
 
   const handleAddEntry = () => {
     setEntries([
       ...entries,
       {
-        product_type: { key: defaultKey, value: defaultValue, label: defaultLabel },
+        product_type: {
+          key: defaultKey,
+          value: defaultValue,
+          label: defaultLabel,
+        },
         unit_weight: 0,
         making_charges: 0,
         worker_compensation: 0,
         stone_charges: 0,
         quantity: 0,
         item_price: 0,
-        purity: { key: defaultPurityKey, value: defaultPurityKey, label: defaultPurityLabel },
+        purity: {
+          key: defaultPurityKey,
+          value: defaultPurityKey,
+          label: defaultPurityLabel,
+        },
         discount: 0,
       },
     ]);
@@ -144,133 +158,174 @@ export const InvoiceCreate: React.FC = () => {
     value: string | number,
     field: keyof Entry,
     index: number,
-    label: number = 0
+    label: string = ""
   ) => {
     const updatedEntries = [...entries];
-    if (field === "product_type" && typeof value === "string"){
-        const keyString = value.substr(0, value.indexOf(" "));
-        const valueString = value.substr(value.indexOf(" ") + 1);
-        const key = typeof keyString === "string" ? parseInt(keyString) : keyString;
-        const Value = typeof valueString === "string" ? parseInt(valueString) : valueString;
-        updatedEntries[index] = {
-            ...updatedEntries[index],
-            [field]: {
-                key: key,
-                value: Value,
-            }
-        };
-    } else if (field === "purity" && typeof value === "string"){
-      const updatedValue = typeof value === "string" ? parseFloat(value) : value;
+    if (field === "product_type" && typeof value === "string") {
+      const keyString = value.substr(0, value.indexOf(" "));
+      const valueString = value.substr(value.indexOf(" ") + 1);
+      const key =
+        typeof keyString === "string" ? parseInt(keyString) : keyString;
+      const Value =
+        typeof valueString === "string" ? parseInt(valueString) : valueString;
       updatedEntries[index] = {
-          ...updatedEntries[index],
-          [field]: {
-              key: updatedValue,
-              value: updatedValue,
-              label: label
-          }
+        ...updatedEntries[index],
+        [field]: {
+          key: key,
+          value: Value,
+          label: label,
+        },
       };
-  } else {
-        const updatedValue = typeof value === "string" ? parseFloat(value) : value;
-        updatedEntries[index] = {
+    } else if (field === "purity" && typeof value === "string") {
+      const updatedValue =
+        typeof value === "string" ? parseFloat(value) : value;
+      updatedEntries[index] = {
+        ...updatedEntries[index],
+        [field]: {
+          key: updatedValue,
+          value: updatedValue,
+          label: parseFloat(label),
+        },
+      };
+    } else {
+      const updatedValue =
+        typeof value === "string" ? parseFloat(value) : value;
+      updatedEntries[index] = {
         ...updatedEntries[index],
         [field]: updatedValue,
-        };
+      };
     }
     //console.log(updatedEntries)
     setEntries(updatedEntries);
   };
 
-  const handleOnFinish = async (values: any) => {
-    const {invoice_no} = values;
+  const handleOnFinish = async () => {
+    const values = form.getFieldValue([]);
+    const { invoice_no } = values;
     try {
-        //console.log(values);
-        const response = await onFinish({
-          invoice_no,
-          salesman: `${values.salesman}`,
-          taxes: {
-            connect: values.taxes
+      createInvoice(
+        {
+          resource: "invoices",
+          values: {
+            invoice_no: invoice_no,
+            salesman: `${values.salesman}`,
+            taxes: {
+              connect: values.taxes,
+            },
+            customer: {
+              connect: [values.customer],
+            },
           },
-          customer: {
-            connect: [values.customer]
-          }
-        });
-        handleCreateInvoiceItems(response?.data?.data?.id);
-        if (typeof response === 'undefined') {
-            // Handle case where onFinish returns undefined
-            throw new Error('Received undefined response from onFinish');
+        },
+        {
+          onSuccess: (data) => {
+            handleCreateInvoiceItems(data.data.data.id);
+          },
+          onError: (error) => {
+            console.log("something went wrong", error);
+          },
         }
-        console.log('Form submitted successfully');
-      } catch (error: any) {
-        console.error('Error submitting form:', error.message);
-      }
+      );
+      console.log("Form submitted successfully");
+    } catch (error: any) {
+      console.error("Error submitting form:", error.message);
+    }
   };
   //console.log(entries);
-  const handleCreateInvoiceItems = async (invoiceId: number) => {
+  const handleCreateInvoiceItems = (invoiceId: number) => {
     try {
       entries.forEach(async (item) => {
         //console.log(invoiceId);
-        const units_weight = (item?.unit_weight !== undefined ? item?.unit_weight : 0) * (item?.quantity !== undefined ? item?.quantity : 0);
+        const units_weight =
+          (item?.unit_weight !== undefined ? item?.unit_weight : 0) *
+          (item?.quantity !== undefined ? item?.quantity : 0);
         let rate = 0;
         types?.data?.forEach((type) => {
-            if(type?.id === item?.product_type?.value){
-                rate = type?.rate;
-            }
-        })
-        const units_price = rate * units_weight * (item?.purity?.label) / 100;
-        const wcCharges = units_price * (item?.worker_compensation !== undefined ? item?.worker_compensation : 0) / 100;
-        const mcCharges = units_weight * (item?.making_charges !== undefined ? item?.making_charges : 0);
+          if (type?.id === item?.product_type?.value) {
+            rate = type?.rate;
+          }
+        });
+        const units_price = (rate * units_weight * item?.purity?.label) / 100;
+        const wcCharges =
+          (units_price *
+            (item?.worker_compensation !== undefined
+              ? item?.worker_compensation
+              : 0)) /
+          100;
+        const mcCharges =
+          units_weight *
+          (item?.making_charges !== undefined ? item?.making_charges : 0);
 
         //TODO: need to confirm discount on which price
-        const discount = units_price * (item?.discount !== undefined ? item?.discount : 0) / 100;
+        const discount =
+          (units_price * (item?.discount !== undefined ? item?.discount : 0)) /
+          100;
 
-        const item_price = units_price + wcCharges + mcCharges + (item?.stone_charges !== undefined ? item?.stone_charges : 0) - discount;
-        await createInvoiceItems.mutate({
-            resource: "invoiceitems", 
-            values: {
-                product_type: {
-                    connect: [parseInt(item?.product_type?.key)]
-                },
-                purity: {
-                    connect: [parseInt(item?.purity?.key)]
-                },
-                unit_weight: item?.unit_weight,
-                making_charges: item?.making_charges,
-                worker_compensation: item?.worker_compensation,
-                stone_charges: item?.stone_charges,
-                quantity: item?.quantity,
-                item_price: item_price, 
-                rate: rate,
-                discount: item?.discount,
-                invoice: {
-                    connect: [invoiceId]
-                }
+        const item_price =
+          units_price +
+          wcCharges +
+          mcCharges +
+          (item?.stone_charges !== undefined ? item?.stone_charges : 0) -
+          discount;
+        createInvoiceItems.mutate({
+          resource: "invoiceitems",
+          values: {
+            product_type: parseInt(item?.product_type?.key),
+            purity: {
+              connect: [parseInt(item?.purity?.key)],
             },
-            successNotification: false,
-            errorNotification: false
-          });
+            unit_weight: item?.unit_weight,
+            making_charges: item?.making_charges,
+            worker_compensation: item?.worker_compensation,
+            stone_charges: item?.stone_charges,
+            quantity: item?.quantity,
+            item_price: item_price,
+            rate: rate,
+            discount: item?.discount,
+            invoice: {
+              connect: [invoiceId],
+            },
+          },
+          successNotification: false,
+          errorNotification: false,
+        });
       });
     } catch (error) {
       console.error("Error creating Invoice Items:", error);
     }
   };
-  
-  if (isLoading){
-    return <div>Loading...</div>
+
+  const handleEstimate = () => {
+    console.log(entries);
+    setInvoice(form.getFieldValue([]));
+    setOpen(true);
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   //console.log(invoiceNo,'my caller');
 
   //console.log(formProps.form?.getFieldValue(['invoice_no']));//
-  
 
+  const handleError = () => {
+  }
+
+  const handleScan = (data: any) => {
+    if (data){
+      setShowQR(false)
+    }
+    console.log(data);
+  }
   return (
-    <Create saveButtonProps={saveButtonProps}>
-      <Form {...formProps}
-      onLoad={(e)=>{console.log(e)
-      }}
-      onLoadedData={(e)=>{console.log(e)
-      }}
-      onFinish={handleOnFinish} layout="vertical">
+    <Create footerButtons={<></>}>
+      <Form form={form} onFinish={handleOnFinish} layout="vertical">
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button type="primary" onClick={handleEstimate}>
+            Estimate
+          </Button>
+        </div>
         <Form.Item
           label="Invoice Number"
           name="invoice_no"
@@ -278,12 +333,12 @@ export const InvoiceCreate: React.FC = () => {
             {
               required: true,
               message: "Please enter Invoice Number",
-            }
+            },
           ]}
         >
           <Input disabled={true} />
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           label="Salesman"
           name="salesman"
           rules={[
@@ -293,13 +348,14 @@ export const InvoiceCreate: React.FC = () => {
             },
           ]}
         >
-          <Input />
-        </Form.Item>
+          <Input value={""}/>
+        </Form.Item> */}
         <Form.Item>
           <Table
             dataSource={entries}
             bordered
             size="small"
+            scroll={{ x: 1100 }}
             style={{ marginBottom: "0" }}
           >
             <Table.Column
@@ -308,17 +364,18 @@ export const InvoiceCreate: React.FC = () => {
               key="product_type"
               render={(text, record, index) => (
                 <Select
-                  style={{width: "180px"}}
+                  style={{ width: "180px" }}
                   options={productOptions}
                   value={text?.label}
-                  onChange={(value) => {
-                    //console.log(value);
-                    handleFieldChange( 
+                  onChange={(value, option: any) => {
+                    console.log(option);
+                    handleFieldChange(
                       value.toString(),
                       "product_type",
-                      index 
-                    )}
-                  }
+                      index,
+                      option?.label
+                    );
+                  }}
                 />
               )}
             />
@@ -353,11 +410,7 @@ export const InvoiceCreate: React.FC = () => {
                 <Input
                   value={text || "0"}
                   onChange={(e) => {
-                    handleFieldChange(
-                      e.target.value,
-                      "quantity",
-                      index
-                    );
+                    handleFieldChange(e.target.value, "quantity", index);
                   }}
                 />
               )}
@@ -370,11 +423,7 @@ export const InvoiceCreate: React.FC = () => {
                 <Input
                   value={text || "0"}
                   onChange={(e) => {
-                    handleFieldChange(
-                      e.target.value,
-                      "unit_weight",
-                      index
-                    );
+                    handleFieldChange(e.target.value, "unit_weight", index);
                   }}
                 />
               )}
@@ -384,7 +433,7 @@ export const InvoiceCreate: React.FC = () => {
               dataIndex="purity"
               key="purity"
               render={(text, record: Entry, index) => (
-                     <Select
+                <Select
                   {...purityProps}
                   style={{ width: "90px" }}
                   value={text?.value || defaultPurityKey}
@@ -393,7 +442,7 @@ export const InvoiceCreate: React.FC = () => {
                       value.toString(),
                       "purity",
                       index,
-                      parseFloat(option?.label)
+                      option?.label
                     )
                   }
                 />
@@ -424,11 +473,7 @@ export const InvoiceCreate: React.FC = () => {
                 <Input
                   value={text || "0"}
                   onChange={(e) =>
-                    handleFieldChange(
-                      e.target.value,
-                      "making_charges",
-                      index
-                    )
+                    handleFieldChange(e.target.value, "making_charges", index)
                   }
                 />
               )}
@@ -441,11 +486,7 @@ export const InvoiceCreate: React.FC = () => {
                 <Input
                   value={text || "0"}
                   onChange={(e) =>
-                    handleFieldChange(
-                      e.target.value,
-                      "stone_charges",
-                      index
-                    )
+                    handleFieldChange(e.target.value, "stone_charges", index)
                   }
                 />
               )}
@@ -458,11 +499,7 @@ export const InvoiceCreate: React.FC = () => {
                 <Input
                   value={text || "0"}
                   onChange={(e) =>
-                    handleFieldChange(
-                      e.target.value,
-                      "discount",
-                      index
-                    )
+                    handleFieldChange(e.target.value, "discount", index)
                   }
                 />
               )}
@@ -523,7 +560,48 @@ export const InvoiceCreate: React.FC = () => {
         >
           <Select {...customerProps} style={{ width: "100%" }} />
         </Form.Item>
+        <Form.Item style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button type="primary" htmlType="submit">
+            Save
+          </Button>
+        </Form.Item>
       </Form>
+      <Modal
+        open={open}
+        width={800}
+        onOk={() => setOpen(false)}
+        onCancel={() => setOpen(false)}
+      >
+        <PdfLayoutEstimate invoiceitems={entries} invoice={invoice} />
+      </Modal>
+
+      <Image
+        onClick={() => setShowQR(true)}
+        preview={false}
+        src={QrIcon}
+        alt=""
+      />
+      <Modal
+        title="Scan now"
+        open={showQR}
+        onCancel={() => setShowQR(false)}
+        onOk={() => setShowQR(false)}
+        destroyOnClose={true}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+          }}
+        >
+            <QrReader
+              delay={300}
+              onError={handleError}
+              onScan={handleScan}
+              style={{ width: "100%", height: "100%" }}
+            />
+        </div>
+      </Modal>
     </Create>
   );
 };

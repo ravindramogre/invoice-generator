@@ -10,31 +10,89 @@ import {
 import QRImage from "/qrambika.png";
 import AaiMataImage from "/jagdambamata.jpg";
 import BIS from "/bis.jpeg";
+import { useMany, useOne, useList } from "@refinedev/core";
 import Converter from 'number-to-words';
 
-export const PdfLayout = ({ record }: any) => {
-  const trimIndex = record?.createdAt?.indexOf("T");
-  const invoiceDate = record?.createdAt?.substring(0, trimIndex);
+export const PdfLayoutEstimate = ({ invoiceitems, invoice }: any) => {
+  const { data: Taxes, isLoading: taxLoading } = useMany({
+    resource: "taxes",
+    ids: invoice?.taxes ? invoice?.taxes : [0],
+  });
+  const { data: Customer, isLoading: customerLoading } = useOne({
+    resource: "customers",
+    id: invoice?.customer ? invoice?.customer : [0],
+  });
+  const { data: Types, isLoading: typeLoading } = useList({
+    resource: "types",
+  });
+  const { data: Products, isLoading: productLoading } = useList({
+    resource: "products",
+  });
+  if (customerLoading || taxLoading || typeLoading || productLoading) {
+    return <p>Loading...</p>;
+  }
 
+  console.log(invoice);
+  let date = new Date();
+  const invoiceDate =
+    date.getFullYear() +
+    "-" +
+    date.getMonth().toString().padStart(2, "0") +
+    "-" +
+    date.getDate().toString().padStart(2, "0");
+
+  invoiceitems = invoiceitems?.map((item: any) => {
+    var hsn;
+    const units_weight =
+      (item?.unit_weight !== undefined ? item?.unit_weight : 0) *
+      (item?.quantity !== undefined ? item?.quantity : 0);
+    let rate = 0;
+    Types?.data?.forEach((type) => {
+      if (type?.id === item?.product_type?.value) {
+        rate = type?.rate;
+        hsn = type?.hsn;
+      }
+    });
+    const units_price = (rate * units_weight * item?.purity?.label) / 100;
+    const wcCharges =
+      (units_price *
+        (item?.worker_compensation !== undefined
+          ? item?.worker_compensation
+          : 0)) /
+      100;
+    const mcCharges =
+      units_weight *
+      (item?.making_charges !== undefined ? item?.making_charges : 0);
+
+    //TODO: need to confirm discount on which price
+    const discount =
+      (units_price * (item?.discount !== undefined ? item?.discount : 0)) / 100;
+
+    const item_price =
+      units_price +
+      wcCharges +
+      mcCharges +
+      (item?.stone_charges !== undefined ? item?.stone_charges : 0) -
+      discount;
+    return { ...item, hsn: hsn, rate: rate, item_price: item_price };
+  });
   const totalItems: any = [];
   let cnt = 0;
-  const items = record?.invoiceitems;
   let total_price = 0;
-  items?.forEach((element: any) => {
+  invoiceitems?.forEach((element: any) => {
     total_price += element?.item_price;
     totalItems.push(++cnt);
   });
 
   //TODO grand total calculation
   let grand_total = total_price;
-  record?.taxes?.forEach((tax: any) => {
+  Taxes?.data?.forEach((tax: any) => {
     grand_total += (total_price * tax?.percentage) / 100;
   });
-  console.log(grand_total);
   const GT_Before = grand_total;
   grand_total = Math.floor(grand_total);
   const round_off = Math.round((GT_Before - grand_total) * 100) / 100;
-  console.log(round_off);
+
 
   let converted = Converter.toWords(grand_total);
   let words = converted.split(' ');
@@ -42,6 +100,7 @@ export const PdfLayout = ({ record }: any) => {
     words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
   }
   converted = words.join(' ');
+  
   return (
     <PDFViewer style={styles.viewer}>
       <Document>
@@ -49,7 +108,7 @@ export const PdfLayout = ({ record }: any) => {
           <View>
             <View style={styles.invoiceTextNumberContainer}>
               <Text>{`GSTIN: 29AHOPK1389F1ZX`}</Text>
-              <Text>{`Invoice Id:${record?.id}`}</Text>
+              {/* <Text>{`Invoice Id:${record?.id}`}</Text> */}
             </View>
           </View>
           <View style={styles.dividerLG} />
@@ -121,7 +180,7 @@ export const PdfLayout = ({ record }: any) => {
                   { width: "100%", padding: "0", marginTop: "6" },
                 ]}
               >
-                Tax Invoice
+                Estimate
               </Text>
             </View>
             <View
@@ -151,30 +210,30 @@ export const PdfLayout = ({ record }: any) => {
                     { fontSize: "10", paddingBottom: "1" },
                   ]}
                 >
-                  Bill To:
+                  Customer Details:
                 </Text>
                 <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`${record?.customer?.name}`}</Text>
+                >{`${Customer?.data?.name}`}</Text>
                 <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`${record?.customer?.address_line_1}`}</Text>
+                >{`${Customer?.data?.address_line_1}`}</Text>
                 <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`${record?.customer?.state}, ${record?.customer?.pincode}`}</Text>
+                >{`${Customer?.data?.state}, ${Customer?.data?.pincode}`}</Text>
               </div>
               {/* </Text> */}
               {/* <Text style={[styles.tableHeaderItem, { width: "50%" }]}> */}
               <div style={{ display: "block", width: "50%", padding: "2" }}>
-                <Text
-                  style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`Invoice No.: ${record?.invoice_no}`}</Text>
-                <Text
-                  style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`Invoice Dt: ${invoiceDate}`}</Text>
                 {/* <Text
                   style={{ fontSize: "10", paddingBottom: "1" }}
-                >{`Pay To:  ${record?.salesman}`}</Text> */}
+                >{`Invoice No.: ${record?.invoice_no}`}</Text> */}
+                <Text
+                  style={{ fontSize: "10", paddingBottom: "1" }}
+                >{`Estimate Date: ${invoiceDate}`}</Text>
+                {/* <Text
+                    style={{ fontSize: "10", paddingBottom: "1" }}
+                  >{`Pay To:  ${record?.salesman}`}</Text> */}
               </div>
               {/* </Text> */}
             </View>
@@ -309,7 +368,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                <Text style={{ fontSize: "10", paddingBottom: "1" }}> Rate </Text>
+                <Text style={{ fontSize: "10", paddingBottom: "1" }}>Rate</Text>
               </div>
               <div
                 style={{
@@ -362,10 +421,10 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text
                     style={{ fontSize: "10", paddingBottom: "2" }}
-                  >{`${item?.product_type?.type?.type} ${item?.product_type?.product?.name}`}</Text>
+                  >{`${item?.product_type?.label}`}</Text>
                 ))}
               </div>
               <div
@@ -376,9 +435,9 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
-                    {item?.product_type?.type?.hsn}
+                    {item?.hsn}
                   </Text>
                 ))}
               </div>
@@ -390,7 +449,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.quantity}
                   </Text>
@@ -404,7 +463,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.unit_weight * item?.quantity}
                   </Text>
@@ -418,7 +477,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.unit_weight * item?.quantity}
                   </Text>
@@ -432,9 +491,9 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
-                    {item?.purity?.purity_percentage}
+                    {item?.purity?.label}
                   </Text>
                 ))}
               </div>
@@ -446,7 +505,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.worker_compensation}
                   </Text>
@@ -460,7 +519,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.making_charges}
                   </Text>
@@ -474,7 +533,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.stone_charges}
                   </Text>
@@ -487,7 +546,7 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.rate}
                   </Text>
@@ -500,14 +559,14 @@ export const PdfLayout = ({ record }: any) => {
                   borderRight: "1px solid black",
                 }}
               >
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.discount}
                   </Text>
                 ))}
               </div>
               <div style={{ width: "70%", padding: "2" }}>
-                {items?.map((item: any) => (
+                {invoiceitems?.map((item: any) => (
                   <Text style={{ fontSize: "10", paddingBottom: "1" }}>
                     {item?.item_price?.toFixed(2)}
                   </Text>
@@ -548,7 +607,7 @@ export const PdfLayout = ({ record }: any) => {
                   margin: "0",
                   paddingTop: "4",
                   border: "1px solid black",
-                  borderBottom: "none",
+                  borderBottom: "none"
                 },
               ]}
             >
@@ -574,7 +633,7 @@ export const PdfLayout = ({ record }: any) => {
                   <Text style={styles.footerItems}>
                     {`Taxable Amount:    ${total_price.toFixed(2)}`}
                   </Text>
-                  {record?.taxes?.map((tax: any) => (
+                  {Taxes?.data?.map((tax: any) => (
                     <Text style={styles.footerItems}>
                       {`${tax?.name} @ ${tax?.percentage}       ${
                         Math.round(total_price * tax?.percentage) / 100
@@ -582,13 +641,13 @@ export const PdfLayout = ({ record }: any) => {
                     </Text>
                   ))}
                   {/* <Text
-                    style={styles.footerItems}
-                  >
-                    {`${record?.taxes[0]?.name} @ ${record?.taxes[0]?.percentage}       23`}
-                  </Text>
-                  <Text style={styles.footerItems}>
-                    {`${record?.taxes[1]?.name} @ ${record?.taxes[1]?.percentage}:      23`}
-                  </Text> */}
+                      style={styles.footerItems}
+                    >
+                      {`${record?.taxes[0]?.name} @ ${record?.taxes[0]?.percentage}       23`}
+                    </Text>
+                    <Text style={styles.footerItems}>
+                      {`${record?.taxes[1]?.name} @ ${record?.taxes[1]?.percentage}:      23`}
+                    </Text> */}
                   <Text style={styles.footerItems}>
                     {`Round Off:   ${round_off}`}
                   </Text>
@@ -598,22 +657,22 @@ export const PdfLayout = ({ record }: any) => {
                 </div>
               </div>
               {/* <div style={{ width: "10.3%", padding: "2" }}>
-                <Text style={{ fontSize: "10", paddingBottom: "12" , paddingRight: "20"}}>
-                  {record?.total_price}
-                </Text>
-                <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
-                  {record?.total_price * record?.taxes[0]?.percentage / 100}
-                </Text>
-                <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
-                  {record?.total_price * record?.taxes[1]?.percentage / 100}
-                </Text>
-                <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
-                  {round_off}
-                </Text>
-                <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
-                 {record?.total_price * (record?.taxes[0]?.percentage + record?.taxes[1]?.percentage) / 100}
-                </Text>
-              </div> */}
+                  <Text style={{ fontSize: "10", paddingBottom: "12" , paddingRight: "20"}}>
+                    {record?.total_price}
+                  </Text>
+                  <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
+                    {record?.total_price * record?.taxes[0]?.percentage / 100}
+                  </Text>
+                  <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
+                    {record?.total_price * record?.taxes[1]?.percentage / 100}
+                  </Text>
+                  <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
+                    {round_off}
+                  </Text>
+                  <Text style={{ fontSize: "10", paddingBottom: "4" , paddingRight: "20"}}>
+                   {record?.total_price * (record?.taxes[0]?.percentage + record?.taxes[1]?.percentage) / 100}
+                  </Text>
+                </div> */}
             </View>
             <View
               style={[
@@ -634,17 +693,17 @@ export const PdfLayout = ({ record }: any) => {
             <View style={styles.signatureContainer}>
               <Text style={styles.signatureText}>
                 {`Owner's Signature:
-
-
-                  ________________`}
+  
+  
+                    ________________`}
               </Text>
             </View>
             <View style={styles.signatureContainer}>
               <Text style={styles.signatureText}>
                 {`Customer Signature:
-
-
-                  ________________`}
+  
+  
+                    ________________`}
               </Text>
             </View>
             <View style={styles.totalContainer}>
@@ -652,18 +711,18 @@ export const PdfLayout = ({ record }: any) => {
                 {`Payable Amount: ${grand_total + '.00'}`}
               </Text>
               {/* <Text style={styles.totalText}>
-                Total($):
-                {subtotal +
-                  (subtotal * (record?.taxes[0].name)) / 100 -
-                  (subtotal * (record?.discount)) / 100}
-              </Text> */}
+                  Total($):
+                  {subtotal +
+                    (subtotal * (record?.taxes[0].name)) / 100 -
+                    (subtotal * (record?.discount)) / 100}
+                </Text> */}
             </View>
           </View>
           <View style={styles.footer}>
             {/* <Text style={styles.footerText}>{record?.company.city}</Text>
-            <Text style={styles.footerText}>
-              {record?.company.address}, {record?.company.country}
-            </Text> */}
+              <Text style={styles.footerText}>
+                {record?.company.address}, {record?.company.country}
+              </Text> */}
           </View>
         </Page>
       </Document>

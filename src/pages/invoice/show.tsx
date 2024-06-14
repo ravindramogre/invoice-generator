@@ -1,6 +1,6 @@
 import { useShow, useOne, useMany, HttpError } from "@refinedev/core"
 import { PdfLayout } from './InvoicePdf';
-import { Show, MarkdownField } from "@refinedev/antd";
+import { Show } from "@refinedev/antd";
 
 import { Typography } from "antd";
 import { log } from "console";
@@ -11,14 +11,17 @@ const { Title, Text } = Typography;
 export const InvoiceShow = () => {
     const { queryResult } = useShow({
         meta: {
-            populate: ["taxes", "invoiceitems", "invoiceitems.purity", "invoiceitems.producttype", 
-            "invoiceitems.producttype.product",
-            "invoiceitems.producttype.type", "customer"]
+            populate: ["taxes", "invoiceitems", "invoiceitems.purity", "invoiceitems.product_type", 
+            "invoiceitems.product_type.product",
+            "invoiceitems.product_type.type", "customer"]
         }
     });
 
-    console.log(queryResult);
+    const { data, isLoading, isError } = queryResult;
     const record = queryResult?.data?.data;
+    if (isLoading) {
+        return <p>Loading..</p>;
+    }
     return (
         <Show isLoading={false}>
             <Title level={5}>Id</Title>

@@ -48,11 +48,11 @@ export const InvoiceList = () => {
             title="Invoice Number"
             render={(value, record) => <TextField value={value} />}
           />
-          <Table.Column
+          {/* <Table.Column
             dataIndex="salesman"
             title="Salesman"
             render={(value, record) => <TextField value={value} />}
-          />
+          /> */}
           <Table.Column
             title="Actions"
             dataIndex="actions"
