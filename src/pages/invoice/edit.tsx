@@ -42,6 +42,9 @@ export const InvoiceEdit = () => {
 
     const { data: types }  = useList({
         resource: "types",
+        pagination: {
+          pageSize: 1000
+        }
     })
     itemsData?.forEach((item: any) => initialEntries.add(parseInt(item?.id)));
     const [entries, setEntries] = useState<Entry[]>([]);
@@ -106,6 +109,9 @@ export const InvoiceEdit = () => {
   });
   const { data: productData }  = useList({
     resource: "producttypes",
+    pagination:{
+      pageSize: 1000
+    },
     meta: {
         populate: ["product", "type"]
     }

@@ -27,6 +27,10 @@ export const InvoiceCreate: React.FC = () => {
   const [form] = Form.useForm();
   const [showQR, setShowQR] = useState(false);
   const { data: latestInvoice, isLoading } = useList({
+    pagination: {
+      pageSize: 1,
+      current: 1,
+    },
     sorters: [
       {
         field: "createdAt",
@@ -45,12 +49,18 @@ export const InvoiceCreate: React.FC = () => {
 
   const { data: productData } = useList({
     resource: "producttypes",
+    pagination: {
+      pageSize: 1000
+    },
     meta: {
       populate: ["product", "type"],
     },
   });
   const { data: types } = useList({
     resource: "types",
+    pagination: {
+      pageSize: 1000
+    }
   });
 
   const productTypes = productData?.data;

@@ -7,7 +7,10 @@ export const TypeCreate = () => {
   const { formProps, saveButtonProps, onFinish} = useForm();
   const createProductTypes = useCreate();
   const { data: productsList, isLoading } = useList({
-    resource: "products"
+    resource: "products",
+    pagination: {
+      pageSize: 1000
+    }
   })
 
   const handleOnFinish = async (values: any) => {

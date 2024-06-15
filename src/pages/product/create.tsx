@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { Create, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, Button, Table } from "antd";
-import { useCreate, useList } from "@refinedev/core";
+import { useCreate, useList, useInfiniteList, useTable, useCustom } from "@refinedev/core";
+import { ProductList } from "./list";
 
 export const ProductCreate = () => {
   const { formProps, saveButtonProps, onFinish } = useForm();
   const createProductTypes = useCreate();
   const { data: typesList, isLoading } = useList({
-    resource: "types"
+    resource: "types",
+    pagination: {
+      pageSize: 1000
+    }
   })
+  
   const handleOnFinish = async (values: any) => {
     const {name, description, manufacturer} = values;
     try {
