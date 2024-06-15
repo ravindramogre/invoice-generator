@@ -147,7 +147,7 @@ export const PdfLayoutEstimate = ({ invoiceitems, invoice }: any) => {
                 }}
               >
                 <Text style={{ fontSize: "12" }}>
-                  NO.27, KULLAPPA CIRCLE, NEHRU ROAD, KAMAMANAHALLI, BANGALORE
+                  NO.27, KULLAPPA CIRCLE, NEHRU ROAD, KAMANAHALLI, BANGALORE
                 </Text>
               </View>
               <View
@@ -158,7 +158,7 @@ export const PdfLayoutEstimate = ({ invoiceitems, invoice }: any) => {
                   alignItems: "center",
                 }}
               >
-                <Text style={{ fontSize: "12" }}>560084, Ph. 944-9987873</Text>
+                <Text style={{ fontSize: "12" }}>560084, Ph. 9449987873, 9738500095</Text>
               </View>
             </View>
             <View>

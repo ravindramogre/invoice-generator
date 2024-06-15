@@ -26,26 +26,26 @@ export const InvoiceCreate: React.FC = () => {
   const [paymentMode, setPaymentMode] = useState("");
   const [form] = Form.useForm();
   const [showQR, setShowQR] = useState(false);
-  const { data: latestInvoice, isLoading } = useList({
-    pagination: {
-      pageSize: 1,
-      current: 1,
-    },
-    sorters: [
-      {
-        field: "createdAt",
-        order: "desc",
-      },
-    ],
-  });
-  const initInvoice = "INV_00001";
-  const [invoiceNo, setInvoiceNo] = useState(initInvoice);
-  useEffect(() => {
-    const id = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
-    setInvoiceNo(`INV_${id.toString().padStart(5, "0")}`);
-    form?.setFieldValue("invoice_no", `INV_${id.toString().padStart(5, "0")}`);
-    form?.setFieldValue("taxes", [1, 2]);
-  }, [latestInvoice]);
+  // const { data: latestInvoice, isLoading } = useList({
+  //   pagination: {
+  //     pageSize: 1,
+  //     current: 1,
+  //   },
+  //   sorters: [
+  //     {
+  //       field: "createdAt",
+  //       order: "desc",
+  //     },
+  //   ],
+  // });
+  // const initInvoice = "INV_00001";
+  // const [invoiceNo, setInvoiceNo] = useState(initInvoice);
+  // useEffect(() => {
+  //   const id = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
+  //   setInvoiceNo(`INV_${id.toString().padStart(5, "0")}`);
+  //   form?.setFieldValue("invoice_no", `INV_${id.toString().padStart(5, "0")}`);
+  //   form?.setFieldValue("taxes", [1, 2]);
+  // }, [latestInvoice]);
 
   const { data: productData } = useList({
     resource: "producttypes",
@@ -315,9 +315,9 @@ export const InvoiceCreate: React.FC = () => {
     setOpen(true);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // }
 
   //console.log(invoiceNo,'my caller');
 
@@ -352,7 +352,7 @@ export const InvoiceCreate: React.FC = () => {
             },
           ]}
         >
-          <Input disabled={true} />
+          <Input disabled={false} />
         </Form.Item>
         {/* <Form.Item
           label="Salesman"
