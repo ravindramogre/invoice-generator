@@ -40,12 +40,12 @@ export const InvoiceCreate: React.FC = () => {
   // });
   // const initInvoice = "INV_00001";
   // const [invoiceNo, setInvoiceNo] = useState(initInvoice);
-  // useEffect(() => {
-  //   const id = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
-  //   setInvoiceNo(`INV_${id.toString().padStart(5, "0")}`);
-  //   form?.setFieldValue("invoice_no", `INV_${id.toString().padStart(5, "0")}`);
-  //   form?.setFieldValue("taxes", [1, 2]);
-  // }, [latestInvoice]);
+  useEffect(() => {
+    //const id = parseInt(`${latestInvoice?.data[0]?.id || 0}`) + 1;
+    //setInvoiceNo(`INV_${id.toString().padStart(5, "0")}`);
+    //form?.setFieldValue("invoice_no", `INV_${id.toString().padStart(5, "0")}`);
+    form?.setFieldValue("taxes", [1, 2]);
+  }, []);
 
   const { data: productData } = useList({
     resource: "producttypes",
