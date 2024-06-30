@@ -3,7 +3,7 @@ import { Form, Input, Space, Table } from 'antd';
 import React from 'react'
 
 export const InvoiceList = () => {
-    const { tableProps, searchFormProps } = useTable({
+    //const { tableProps, searchFormProps } = useTable({
       meta: {
         populate: ["taxes", "invoice_items", "customer"]
       },
